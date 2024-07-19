@@ -39,9 +39,27 @@ class mats:
         self.name = name
 
 
-def draw(space, window, draw_options):
+def draw(
+        space,
+        window,
+        draw_options,
+        line,
+        material,
+        orient,
+        player_turn,
+        building,
+        ball,
+        player1,
+        player2,
+):
     window.fill(blue)
     space.debug_draw(draw_options)
+    if player_turn == player1 and building:
+        pygame.draw.rect(window, grey, (400, 0, width - 400, height))
+    elif player_turn == player2 and building:
+        pygame.draw.rect(window, grey, (0, 0, width - 400, height))
+    if line:
+        pygame.draw.line(window, "black", line[0], line[1], 3)
 
     pygame.display.update()
 
@@ -76,17 +94,46 @@ def create_structure(space, pos, size, color, mass):
 
 
 def play():
+    player1, player2 = player("p1", 500, []), player("p1", 500, [])
+    player_turn = player1
+    orient = (16, 80)
+    wood = mats(120, 30, brown, "Wood")
+    ice = mats(80, 15, blue, "Ice")
+    brick = mats(150, 50, black, "Brick")
+    material = wood
     run = True
     space = pymunk.Space()
     space.gravity = (0, 980)
     create_boundaries(space, width, height)
     clock = pygame.time.Clock()
+    structs = []
+    pressed_pos = None
+    ball = None
+    building = True
     draw_options = pymunk.pygame_util.DrawOptions(window)
     while run:
+        line = None
+        if ball and pressed_pos:
+            line = [
+                (100 if player_turn == player1 else 1800, 700),
+                pygame.mouse.get_pos(),
+            ]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-        draw(space, window, draw_options)
+        draw(
+            space,
+            window,
+            draw_options,
+            line,
+            material,
+            orient,
+            player_turn,
+            building,
+            ball,
+            player1,
+            player2,
+        )
         space.step(dt)
         clock.tick(FPS)
     pygame.quit()
