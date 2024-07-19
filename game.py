@@ -38,6 +38,12 @@ class mats:
         self.color = color
         self.name = name
 
+def calculate_distance(p1, p2):
+    return math.sqrt((p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2)
+
+
+def calculate_angle(p1, p2):
+    return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
 
 def draw(
         space,
@@ -92,6 +98,18 @@ def create_structure(space, pos, size, color, mass):
     space.add(body, shape)
     return shape
 
+def create_ball(space, radius, mass, pos):
+    body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    body.position = pos
+    # SHAPE STATS
+    shape = pymunk.Circle(body, radius)
+    shape.mass = mass
+    shape.color = (*red, 100)
+    shape.elasticity = 0.9
+    shape.friction = 0.4
+    # ADD TO SIMULATION
+    space.add(body, shape)
+    return shape
 
 def play():
     player1, player2 = player("p1", 500, []), player("p1", 500, [])
@@ -118,9 +136,34 @@ def play():
                 (100 if player_turn == player1 else 1800, 700),
                 pygame.mouse.get_pos(),
             ]
+        keys = pygame.key.get_pressed()
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if building:
+                    create_structure(
+                        space,
+                        (pygame.mouse.get_pos()),
+                        orient,
+                        (*material.color, 100),
+                        material.mass,
+                    )
+                else:
+                    if not ball:
+                        ball = create_ball(
+                            space,
+                            20,
+                            50,
+                            (100 if player_turn == player1 else 1800, 700),
+                        )
+                        pressed_pos = pygame.mouse.get_pos()
+                        print("waho")
+
+
         draw(
             space,
             window,
