@@ -20,8 +20,6 @@ bird_sprite = pygame.transform.scale(
     (47, 47),
 )
 FONT = pygame.font.Font(None, 40)
-FPS = 60
-dt = 1 / FPS
 
 
 class player:
@@ -38,12 +36,14 @@ class mats:
         self.color = color
         self.name = name
 
+
 def calculate_distance(p1, p2):
     return math.sqrt((p2[1] - p1[1]) ** 2 + (p2[0] - p1[0]) ** 2)
 
 
 def calculate_angle(p1, p2):
     return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+
 
 def draw(
         space,
@@ -66,7 +66,40 @@ def draw(
         pygame.draw.rect(window, grey, (0, 0, width - 400, height))
     if line:
         pygame.draw.line(window, "black", line[0], line[1], 3)
-
+    if building:
+        window.blit(
+            FONT.render(
+                material.name + "(Wood: 1, Ice: 2, Brick: 3)",
+                False,
+                (0, 0, 0),
+                ),
+            (0, 0),
+        )
+        window.blit(
+            FONT.render(
+                "Long (f to flip)" if orient == (80, 16) else "Tall (f to flip)",
+                False,
+                (0, 0, 0),
+            ),
+            (0, 50),
+        )
+        pygame.draw.rect(
+            window,
+            green,
+            (
+                pygame.mouse.get_pos()[0] - 38  # WIDE X
+                if orient == (80, 16)
+                else pygame.mouse.get_pos()[0] - 5,  # WIDE Y
+                pygame.mouse.get_pos()[1] - 5  # Wide Y
+                if orient == (80, 16)
+                else pygame.mouse.get_pos()[1] - 40,  # LONG Y
+                *orient,
+            ),
+        )
+    elif ball:
+        window.blit(
+            bird_sprite, (ball.body.position[0] - 26, ball.body.position[1] - 28)
+        )
     pygame.display.update()
 
 
@@ -98,6 +131,25 @@ def create_structure(space, pos, size, color, mass):
     space.add(body, shape)
     return shape
 
+
+# def create_swing(space):
+#     rotation_center_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+#     rotation_center_body.position = (300, 100)
+
+#     body = pymunk.Body()
+#     body.position = (300, 100)
+#     line = pymunk.Segment(body, (0, 0), (255, 0), 5)
+#     circle = pymunk.Circle(body, 40, (255, 0))
+#     line.friction = 1
+#     circle.friction = 1
+#     line.mass = 8
+#     circle.mass = 30
+#     circle.elasticity = 0.95
+#     rotation_center_joint = pymunk.PinJoint(body, rotation_center_body, (0, 0), (0, 0))
+#     space.add(circle, line, body, rotation_center_joint)
+#     return body
+
+
 def create_ball(space, radius, mass, pos):
     body = pymunk.Body(body_type=pymunk.Body.STATIC)
     body.position = pos
@@ -111,6 +163,7 @@ def create_ball(space, radius, mass, pos):
     space.add(body, shape)
     return shape
 
+
 def play():
     player1, player2 = player("p1", 500, []), player("p1", 500, [])
     player_turn = player1
@@ -120,14 +173,16 @@ def play():
     brick = mats(150, 50, black, "Brick")
     material = wood
     run = True
+    clock = pygame.time.Clock()
+    FPS = 60
+    dt = 1 / FPS
     space = pymunk.Space()
     space.gravity = (0, 980)
-    create_boundaries(space, width, height)
-    clock = pygame.time.Clock()
     structs = []
     pressed_pos = None
     ball = None
     building = True
+    create_boundaries(space, width, height)
     draw_options = pymunk.pygame_util.DrawOptions(window)
     while run:
         line = None
@@ -204,7 +259,6 @@ def play():
                         )
                         print("yesri")
                         pressed_pos = pygame.mouse.get_pos()
-
         draw(
             space,
             window,
