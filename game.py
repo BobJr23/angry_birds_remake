@@ -137,11 +137,35 @@ def play():
                 pygame.mouse.get_pos(),
             ]
         keys = pygame.key.get_pressed()
-
+        if building:
+            if keys[pygame.K_1]:
+                material = wood  # wood
+            if keys[pygame.K_2]:
+                material = ice  # ice
+            if keys[pygame.K_3]:
+                material = brick  # brick
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == pygame.KEYDOWN:
+                if building:  # BUILDING ONLY
+                    if event.key == pygame.K_f:
+                        if orient == (80, 16):
+                            orient = (16, 80)
+                        else:
+                            orient = (80, 16)
+                    elif event.key == pygame.K_RETURN:
+                        if player_turn == player1:
+                            player_turn = player2
+                        else:
+                            player_turn = player1
+                            building = False
+                elif event.key == pygame.K_RETURN:
+                    if player_turn == player2:
+                        building = True
+                    else:
+                        player_turn = player2
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if building:
@@ -162,7 +186,24 @@ def play():
                         )
                         pressed_pos = pygame.mouse.get_pos()
                         print("waho")
-
+                    elif pressed_pos:
+                        ball.body.body_type = pymunk.Body.DYNAMIC
+                        angle = calculate_angle(*line)
+                        force = calculate_distance(*line) * 50
+                        fx = math.cos(angle) * force
+                        fy = math.sin(angle) * force
+                        ball.body.apply_impulse_at_local_point((fx, fy), (0, 0))
+                        pressed_pos = None
+                    else:
+                        space.remove(ball, ball.body)
+                        ball = create_ball(
+                            space,
+                            20,
+                            50,
+                            (100 if player_turn == player1 else 1800, 700),
+                        )
+                        print("yesri")
+                        pressed_pos = pygame.mouse.get_pos()
 
         draw(
             space,
